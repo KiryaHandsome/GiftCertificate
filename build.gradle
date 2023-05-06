@@ -1,7 +1,8 @@
 plugins {
     id 'java'
     id 'war'
-    id 'org.hibernate.orm' version '6.1.6.Final'
+    id 'org.springframework.boot' version '3.0.5'
+    id 'io.spring.dependency-management' version '1.1.0'
 }
 
 group 'ru.clevertec.ecl'
@@ -12,10 +13,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.13.1'
     compileOnly 'org.projectlombok:lombok:1.18.26'
     annotationProcessor 'org.projectlombok:lombok:1.18.26'
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
     implementation 'org.postgresql:postgresql:42.6.0'
     implementation 'org.hibernate:hibernate-core:6.1.6.Final'
     annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.1.6.Final'
@@ -25,12 +24,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2'
     testImplementation 'com.h2database:h2:2.1.214'
 
-
-    implementation 'org.springframework:spring-core:6.0.8'
-    implementation 'org.springframework:spring-orm:6.0.8'
-    implementation 'org.springframework:spring-context:6.0.8'
-    implementation 'org.springframework:spring-webmvc:6.0.8'
-    testImplementation 'org.springframework:spring-test:6.0.8'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'

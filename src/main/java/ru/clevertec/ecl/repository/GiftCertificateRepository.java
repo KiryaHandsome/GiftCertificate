@@ -1,5 +1,6 @@
 package ru.clevertec.ecl.repository;
 
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -15,6 +16,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.hibernate.query.criteria.JpaCriteriaQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ru.clevertec.ecl.exception.EntityNotFoundException;
 import ru.clevertec.ecl.exception.InvalidOrderException;
@@ -33,11 +35,14 @@ import java.util.Optional;
 import java.util.function.Function;
 
 @Repository
-@RequiredArgsConstructor
 public class GiftCertificateRepository implements IGiftCertificateRepository {
 
     private final SessionFactory sessionFactory;
 
+    @Autowired
+    public GiftCertificateRepository(SessionFactory factory) {
+        this.sessionFactory = factory;
+    }
     /**
      * Deletes certificate by id.
      *
