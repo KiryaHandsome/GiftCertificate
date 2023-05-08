@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.hibernate.orm' version '6.1.6.Final'
+}
+
+group 'ru.clevertec.ecl'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.1'
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    implementation 'org.postgresql:postgresql:42.6.0'
+    implementation 'org.hibernate:hibernate-core:6.1.6.Final'
+    annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.1.6.Final'
+    implementation 'org.mapstruct:mapstruct:1.5.4.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.4.Final'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2'
+    testImplementation 'com.h2database:h2:2.1.214'
+
+
+    implementation 'org.springframework:spring-core:6.0.8'
+    implementation 'org.springframework:spring-orm:6.0.8'
+    implementation 'org.springframework:spring-context:6.0.8'
+    implementation 'org.springframework:spring-webmvc:6.0.8'
+    testImplementation 'org.springframework:spring-test:6.0.8'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.1'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'org.mockito:mockito-core:5.3.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.3.0'
+
+}
+
+compileJava {
+    options.annotationProcessorGeneratedSourcesDirectory = file("$buildDir/generated/sources/annotationProcessor/java/main")
+}
+
+test {
+    useJUnitPlatform()
+}
