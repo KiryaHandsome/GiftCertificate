@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.dto;
+package ru.clevertec.ecl.dto.certificate;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
