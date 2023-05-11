@@ -10,9 +10,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.clevertec.ecl.dto.TagRequest;
-import ru.clevertec.ecl.dto.TagResponse;
+import ru.clevertec.ecl.dto.tag.TagRequest;
+import ru.clevertec.ecl.dto.tag.TagResponse;
 import ru.clevertec.ecl.service.TagService;
 
 import java.net.URI;
@@ -20,7 +21,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping(value = "/tags", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/tags")
 @RequiredArgsConstructor
 public class TagController {
 
@@ -34,8 +35,11 @@ public class TagController {
      * @return list of tags
      */
     @GetMapping
-    public ResponseEntity<List<TagResponse>> getAllTags() {
-        List<TagResponse> tags = tagService.findAll();
+    public ResponseEntity<List<TagResponse>> getAllTags(
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size
+    ) {
+        List<TagResponse> tags = tagService.findAll(page, size);
         return ResponseEntity.ok(tags);
     }
 

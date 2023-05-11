@@ -20,7 +20,7 @@ public interface CrudService<REQ, RESP, ID> {
 
     RESP update(ID id, REQ entity);
 
-    List<RESP> findAll();
+    List<RESP> findAll(Integer page, Integer size);
 
     RESP find(ID id);
 }

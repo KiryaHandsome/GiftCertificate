@@ -36,7 +36,6 @@ import java.util.List;
 @Entity
 @ToString
 @Table(name = "gift_certificates", schema = "gift_shop")
-@StaticMetamodel(GiftCertificate.class)
 public class GiftCertificate {
 
     @Id
@@ -45,6 +44,7 @@ public class GiftCertificate {
     private String name;
     private String description;
     private Integer duration;
+    private Double price;
 
     @Column(name = "create_date")
     @CreationTimestamp

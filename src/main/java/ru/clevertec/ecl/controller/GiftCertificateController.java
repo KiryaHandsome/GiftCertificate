@@ -1,6 +1,8 @@
 package ru.clevertec.ecl.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.clevertec.ecl.dto.GiftCertificateRequest;
-import ru.clevertec.ecl.dto.GiftCertificateResponse;
+import ru.clevertec.ecl.dto.certificate.GiftCertificateRequest;
+import ru.clevertec.ecl.dto.certificate.GiftCertificateResponse;
 import ru.clevertec.ecl.service.GiftCertificateService;
 
 import java.net.URI;
@@ -30,29 +32,34 @@ public class GiftCertificateController {
      * All parameters are optional and can be used in conjunction.
      * <p>
      * Examples of url:
-     * {@code /gift-certificates?tag-name=anyName&sort-by-date=asc&sort-by-name=desc&description=beauty}
+     * {@code /gift-certificates?tag-name=anyName&sort-by-date=asc&sort-by-name=desc&description=beauty&page=10&size=5}
      *
      * @param tagName     tag name. If it is presented then endpoint returns list of certificates
      *                    which contains tag with such name.
      * @param sortByDate  sorting order by date. If it is presented then endpoint returns list of certificates
      *                    sorted by date. Value must be either {@code asc} or {@code desc} (case doesn't matter).
-     * @param sortByName  sorting order by name. If it is presented then endpoint returns list of certificates
-     *                    sorted by name. If it's used together with sortByDate it will sort by date firstly.
-     *                    Value must be either {@code asc} or {@code desc} (case doesn't matter).
      * @param description part of description in desired certificates. If it's passed endpoint will return certificates
      *                    which contain passed description as substring. Case-insensitive
-     * @return list of gift certificates
+     * @param page        number of page for pagination()
+     * @param size        size of page for pagination
+     * @return list of found gift certificates
      */
     @GetMapping
-    public ResponseEntity<List<GiftCertificateResponse>> getAllCertificates(@RequestParam(required = false, name = "tag-name") String tagName,
-                                                                            @RequestParam(required = false, name = "sort-by-date") String sortByDate,
-                                                                            @RequestParam(required = false, name = "sort-by-name") String sortByName,
-                                                                            @RequestParam(required = false, name = "description") String description) {
-        List<GiftCertificateResponse> certificates = certificateService.findAll(
-                tagName,
-                sortByDate,
-                sortByName,
-                description);
+    public ResponseEntity<List<GiftCertificateResponse>> getAllCertificates(
+            @RequestParam(required = false, name = "tag-name") String tagName,
+            @RequestParam(required = false, name = "sort-by-date") String sortByDate,
+            @RequestParam(required = false, name = "description") String description,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size
+    ) {
+        List<GiftCertificateResponse> certificates = certificateService
+                .findAll(
+                        tagName,
+                        description,
+                        sortByDate,
+                        page,
+                        size
+                );
         return ResponseEntity.ok(certificates);
     }
 
@@ -78,7 +85,9 @@ public class GiftCertificateController {
      */
     @PostMapping
     public ResponseEntity<Void> createCertificate(
-            @RequestBody GiftCertificateRequest certificateDTO) {
+            @RequestBody
+            GiftCertificateRequest certificateDTO
+    ) {
         GiftCertificateResponse createdCertificate = certificateService.save(certificateDTO);
         return ResponseEntity
                 .created(URI.create("/gift-certificates/" + createdCertificate.getId()))
