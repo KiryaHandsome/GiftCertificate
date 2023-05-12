@@ -1,6 +1,9 @@
 package ru.clevertec.ecl.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,11 +38,10 @@ public class TagController {
      * @return list of tags
      */
     @GetMapping
-    public ResponseEntity<List<TagResponse>> getAllTags(
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer size
+    public ResponseEntity<Page<TagResponse>> getAllTags(
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        List<TagResponse> tags = tagService.findAll(page, size);
+        Page<TagResponse> tags = tagService.findAll(pageable);
         return ResponseEntity.ok(tags);
     }
 

@@ -1,8 +1,9 @@
 package ru.clevertec.ecl.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +19,6 @@ import ru.clevertec.ecl.dto.certificate.GiftCertificateResponse;
 import ru.clevertec.ecl.service.GiftCertificateService;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/gift-certificates")
@@ -36,29 +36,21 @@ public class GiftCertificateController {
      *
      * @param tagName     tag name. If it is presented then endpoint returns list of certificates
      *                    which contains tag with such name.
-     * @param sortByDate  sorting order by date. If it is presented then endpoint returns list of certificates
-     *                    sorted by date. Value must be either {@code asc} or {@code desc} (case doesn't matter).
      * @param description part of description in desired certificates. If it's passed endpoint will return certificates
      *                    which contain passed description as substring. Case-insensitive
-     * @param page        number of page for pagination()
-     * @param size        size of page for pagination
      * @return list of found gift certificates
      */
     @GetMapping
-    public ResponseEntity<List<GiftCertificateResponse>> getAllCertificates(
+    public ResponseEntity<Page<GiftCertificateResponse>> getAllCertificates(
             @RequestParam(required = false, name = "tag-name") String tagName,
-            @RequestParam(required = false, name = "sort-by-date") String sortByDate,
             @RequestParam(required = false, name = "description") String description,
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer size
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        List<GiftCertificateResponse> certificates = certificateService
+        Page<GiftCertificateResponse> certificates = certificateService
                 .findAll(
                         tagName,
                         description,
-                        sortByDate,
-                        page,
-                        size
+                        pageable
                 );
         return ResponseEntity.ok(certificates);
     }

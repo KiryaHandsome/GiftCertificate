@@ -2,16 +2,16 @@ package ru.clevertec.ecl.controller;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.clevertec.ecl.model.User;
 import ru.clevertec.ecl.service.UserService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -38,10 +38,9 @@ public class UserController {
      * @return list of users
      */
     @GetMapping
-    public ResponseEntity<List<User>> findAll(
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer size) {
-        List<User> users = userService.findAll(page, size);
+    public ResponseEntity<Page<User>> findAll(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<User> users = userService.findAll(pageable);
         return ResponseEntity.ok(users);
     }
 }
