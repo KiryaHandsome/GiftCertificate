@@ -2,38 +2,35 @@ package ru.clevertec.ecl.service;
 
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.factory.Mappers;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.dto.certificate.GiftCertificateRequest;
 import ru.clevertec.ecl.dto.certificate.GiftCertificateResponse;
+import ru.clevertec.ecl.dto.tag.TagRequest;
 import ru.clevertec.ecl.exception.EntityNotFoundException;
 import ru.clevertec.ecl.mapper.GiftCertificateRequestMapper;
 import ru.clevertec.ecl.mapper.GiftCertificateResponseMapper;
+import ru.clevertec.ecl.mapper.TagResponseMapper;
 import ru.clevertec.ecl.model.GiftCertificate;
 import ru.clevertec.ecl.model.Tag;
 import ru.clevertec.ecl.repository.GiftCertificateRepository;
-import ru.clevertec.ecl.repository.TagRepository;
 import ru.clevertec.ecl.service.api.IGiftCertificateService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class GiftCertificateService implements IGiftCertificateService {
 
-    private static final int DEFAULT_PAGE_NUMBER = 0;
-    private static final int DEFAULT_PAGE_SIZE = 10;
-    private static final GiftCertificateResponseMapper responseMapper = Mappers.getMapper(GiftCertificateResponseMapper.class);
-    private static final GiftCertificateRequestMapper requestMapper = Mappers.getMapper(GiftCertificateRequestMapper.class);
-
+    private GiftCertificateResponseMapper responseMapper = Mappers.getMapper(GiftCertificateResponseMapper.class);
+    private GiftCertificateRequestMapper requestMapper = Mappers.getMapper(GiftCertificateRequestMapper.class);
+    private TagResponseMapper tagResponseMapper = Mappers.getMapper(TagResponseMapper.class);
     private final GiftCertificateRepository certificateRepository;
-    private final TagRepository tagRepository;
+    private final TagService tagService;
 
     /**
      * Deletes certificate by id
@@ -41,6 +38,7 @@ public class GiftCertificateService implements IGiftCertificateService {
      * @param id id of certificate to delete
      */
     @Override
+    @Transactional
     public void delete(Integer id) {
         certificateRepository.deleteById(id);
     }
@@ -52,20 +50,25 @@ public class GiftCertificateService implements IGiftCertificateService {
      * @return certificate with created id
      */
     @Override
+    @Transactional
     public GiftCertificateResponse save(GiftCertificateRequest certificateRequestDTO) {
         GiftCertificate giftCertificate = requestMapper.toEntity(certificateRequestDTO);
         List<String> names = certificateRequestDTO.getTags()
                 .stream()
                 .map(Tag::getName)
                 .toList();
-        List<Tag> existingTags = tagRepository.findAllByNameIn(names);
+        List<Tag> existingTags = tagService.findAllByNameIn(names);
         List<Tag> tags = new ArrayList<>();
         for (Tag tag : certificateRequestDTO.getTags()) {
+            ;
             tags.add(existingTags
                     .stream()
                     .filter(t -> t.getName().equals(tag.getName()))
                     .findFirst()
-                    .orElseGet(() -> tagRepository.save(new Tag(null, tag.getName()))));
+                    .orElseGet(() -> tagResponseMapper.toEntity(
+                            tagService.save(new TagRequest(tag.getName())))
+                    )
+            );
         }
         giftCertificate.setTags(tags);
         GiftCertificate certificate = certificateRepository.save(giftCertificate);
@@ -82,10 +85,10 @@ public class GiftCertificateService implements IGiftCertificateService {
      * @throws EntityNotFoundException if certificate with such id doesn't exist
      */
     @Override
+    @Transactional
     public GiftCertificateResponse update(Integer id, GiftCertificateRequest request) {
         GiftCertificate certificate = certificateRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Certificate with not found", id));
-        certificate.setDuration(request.getDuration() != null ? request.getDuration() : certificate.getDuration());
+                .orElseThrow(() -> new EntityNotFoundException("Certificate with such id not found", id));
         setIfNotNull(request, certificate);
         GiftCertificate updatedCertificate = certificateRepository.save(certificate);
         return responseMapper.toDTO(updatedCertificate);
@@ -97,12 +100,9 @@ public class GiftCertificateService implements IGiftCertificateService {
      * @return list of certificates responsesDTO
      */
     @Override
-    @Transactional(readOnly = true)
-    public List<GiftCertificateResponse> findAll(Integer page, Integer size) {
-        return certificateRepository.findAll(PageRequest.of(page, size))
-                .stream()
-                .map(responseMapper::toDTO)
-                .toList();
+    public Page<GiftCertificateResponse> findAll(Pageable pageable) {
+        return certificateRepository.findAll(pageable)
+                .map(responseMapper::toDTO);
     }
 
     /**
@@ -113,7 +113,6 @@ public class GiftCertificateService implements IGiftCertificateService {
      * @throws EntityNotFoundException when certificate with such id doesn't exist
      */
     @Override
-    @Transactional(readOnly = true)
     public GiftCertificateResponse find(Integer id) {
         GiftCertificate certificate = certificateRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Gift certificate not found", id));
@@ -121,33 +120,16 @@ public class GiftCertificateService implements IGiftCertificateService {
     }
 
     @Override
-    public List<GiftCertificateResponse> findAll(
+    public Page<GiftCertificateResponse> findAll(
             String tagName,
             String description,
-            String sortByCreateDate,
-            Integer page,
-            Integer size
+            Pageable pageable
     ) {
-        Pageable pageable = createPageable(sortByCreateDate, page, size);
-        return certificateRepository
-                .findAll(tagName,
-                        description,
-                        pageable)
-                .stream()
-                .map(responseMapper::toDTO)
-                .toList();
+        return certificateRepository.findAll(tagName, description, pageable)
+                .map(responseMapper::toDTO);
     }
 
-    private static Pageable createPageable(String sortByCreateDate, Integer page, Integer size) {
-        int pageNumber = Objects.requireNonNullElse(page, DEFAULT_PAGE_NUMBER);
-        int pageSize = Objects.requireNonNullElse(size, DEFAULT_PAGE_SIZE);
-        if (sortByCreateDate != null) {
-            Sort sort = Sort.by(Sort.Direction.fromString(sortByCreateDate), "createDate");
-            return PageRequest.of(pageNumber, pageSize, sort);
-        }
-        return PageRequest.of(pageNumber, pageSize);
-    }
-
+    //TODO: move to mapper
     private static void setIfNotNull(GiftCertificateRequest source, GiftCertificate destination) {
         if (source.getName() != null)
             destination.setName(source.getName());

@@ -8,9 +8,15 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.clevertec.ecl.dto.OrderRequest;
+import ru.clevertec.ecl.dto.order.OrderDTO;
+import ru.clevertec.ecl.model.Order;
 import ru.clevertec.ecl.model.User;
+import ru.clevertec.ecl.service.OrderService;
 import ru.clevertec.ecl.service.UserService;
 
 @RestController
@@ -19,6 +25,7 @@ import ru.clevertec.ecl.service.UserService;
 public class UserController {
 
     private final UserService userService;
+    private final OrderService orderService;
 
     /**
      * Finds user by id.
@@ -35,12 +42,44 @@ public class UserController {
     /**
      * Finds all users
      *
-     * @return list of users
+     * @return page with users
      */
     @GetMapping
     public ResponseEntity<Page<User>> findAll(
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = 20)
+            Pageable pageable
+    ) {
         Page<User> users = userService.findAll(pageable);
         return ResponseEntity.ok(users);
+    }
+
+    /**
+     * Makes order for user.
+     *
+     * @param userId       user id
+     * @param orderRequest dto with id of bought gift certificate
+     * @return order dto
+     */
+    @PostMapping("/{user_id}/orders")
+    public ResponseEntity<OrderDTO> makeOrder(
+            @PathVariable("user_id") Integer userId,
+            @RequestBody OrderRequest orderRequest) {
+        OrderDTO order = orderService.makeOrder(userId, orderRequest.getCertificateId());
+        return ResponseEntity.ok(order);
+    }
+
+    /**
+     * Finds user orders by user id.
+     *
+     * @param userId user id
+     * @param pageable pageable
+     * @return page of order dto
+     */
+    @GetMapping("/{user_id}/orders")
+    public ResponseEntity<Page<OrderDTO>> getUserOrders(
+            @PathVariable("user_id") Integer userId,
+            Pageable pageable) {
+        Page<OrderDTO> orders = orderService.getUserOrders(userId, pageable);
+        return ResponseEntity.ok(orders);
     }
 }

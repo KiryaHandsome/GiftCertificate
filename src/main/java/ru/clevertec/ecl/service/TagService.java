@@ -2,7 +2,9 @@ package ru.clevertec.ecl.service;
 
 import lombok.RequiredArgsConstructor;
 import org.mapstruct.factory.Mappers;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +20,7 @@ import ru.clevertec.ecl.service.api.CrudService;
 import java.util.List;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class TagService implements CrudService<TagRequest, TagResponse, Integer> {
 
@@ -32,12 +34,9 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
      * @return list of tags
      */
     @Override
-    @Transactional(readOnly = true)
-    public List<TagResponse> findAll(Integer page, Integer size) {
-        return tagRepository.findAll(PageRequest.of(page, size))
-                .stream()
-                .map(responseMapper::toDTO)
-                .toList();
+    public Page<TagResponse> findAll(Pageable pageable) {
+        return tagRepository.findAll(pageable)
+                .map(responseMapper::toDTO);
     }
 
     /**
@@ -46,6 +45,7 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
      * @param id id of tag to delete
      */
     @Override
+    @Transactional
     public void delete(Integer id) {
         tagRepository.deleteById(id);
     }
@@ -57,7 +57,9 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
      * @return tag with created id
      */
     @Override
+    @Transactional
     public TagResponse save(TagRequest tagRequest) {
+        // Do I need this?
         tagRepository.findByName(tagRequest.getName())
                 .ifPresent(t -> {
                     throw new IllegalArgumentException("Tag with such name already exists");
@@ -75,6 +77,7 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
      * @return updated tag
      */
     @Override
+    @Transactional
     public TagResponse update(Integer id, TagRequest tagRequest) {
         Tag tag = requestMapper.toEntity(tagRequest);
         tag.setId(id);
@@ -90,10 +93,13 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
      * @throws EntityNotFoundException when tag with such id doesn't exist
      */
     @Override
-    @Transactional(readOnly = true)
     public TagResponse find(Integer id) {
         Tag tag = tagRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tag not found", id));
         return responseMapper.toDTO(tag);
+    }
+
+    public List<Tag> findAllByNameIn(List<String> names) {
+        return tagRepository.findAllByNameIn(names);
     }
 }

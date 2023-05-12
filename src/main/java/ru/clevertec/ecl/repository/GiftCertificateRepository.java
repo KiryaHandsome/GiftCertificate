@@ -1,5 +1,6 @@
 package ru.clevertec.ecl.repository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,12 +15,11 @@ public interface GiftCertificateRepository extends JpaRepository<GiftCertificate
 
     @Query("""
             SELECT gc FROM GiftCertificate gc
-            JOIN FETCH gc.tags t
-            JOIN gc.tags
+            LEFT JOIN gc.tags t
             WHERE (:tag_name IS NULL OR t.name = :tag_name)
-            OR (:description IS NULL OR gc.description LIKE %:description%)
+            AND (:description IS NULL OR gc.description LIKE %:description%)
             """)
-    List<GiftCertificate> findAll(@Param("tag_name") String tagName,
+    Page<GiftCertificate> findAll(@Param("tag_name") String tagName,
                                   @Param("description") String description,
                                   Pageable pageable);
 }

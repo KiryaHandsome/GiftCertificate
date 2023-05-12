@@ -8,15 +8,11 @@ CREATE TABLE IF NOT EXISTS gift_shop.users
 
 CREATE TABLE IF NOT EXISTS gift_shop.orders
 (
-    id            SERIAL PRIMARY KEY,
-    total_cost    DOUBLE PRECISION         NOT NULL,
-    purchase_date TIMESTAMP WITH TIME ZONE NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS gift_shop.order_certificate
-(
-    order_id         SERIAL REFERENCES gift_shop.orders (id),
-    gift_certificate SERIAL REFERENCES gift_shop.gift_certificates (id)
+    id             SERIAL PRIMARY KEY,
+    total_cost     DOUBLE PRECISION         NOT NULL,
+    purchase_date  TIMESTAMP WITH TIME ZONE NOT NULL,
+    user_id        SERIAL REFERENCES gift_shop.users (id),
+    certificate_id SERIAL REFERENCES gift_shop.gift_certificates (id)
 );
 
 CREATE TABLE IF NOT EXISTS gift_shop.gift_certificates
@@ -28,6 +24,12 @@ CREATE TABLE IF NOT EXISTS gift_shop.gift_certificates
     duration         INT                      NOT NULL CHECK (duration > 0),
     create_date      TIMESTAMP WITH TIME ZONE NOT NULL,
     last_update_date TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS gift_shop.order_certificate
+(
+    order_id         SERIAL REFERENCES gift_shop.orders (id),
+    gift_certificate SERIAL REFERENCES gift_shop.gift_certificates (id)
 );
 
 CREATE TABLE IF NOT EXISTS gift_shop.tags

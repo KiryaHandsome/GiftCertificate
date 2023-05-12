@@ -1,8 +1,8 @@
 package ru.clevertec.ecl.service.api;
 
 
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Interface that present service for CRUD operations
@@ -20,7 +20,7 @@ public interface CrudService<REQ, RESP, ID> {
 
     RESP update(ID id, REQ entity);
 
-    List<RESP> findAll(Integer page, Integer size);
+    Page<RESP> findAll(Pageable pageable);
 
     RESP find(ID id);
 }
