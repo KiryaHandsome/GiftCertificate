@@ -30,8 +30,9 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
         @Test
         void checkMakeOrderShouldReturnCreatedOrder() {
             int userId = 1;
+            int certificateId = 3;
 
-            OrderResponse actual = orderService.makeOrder(1, 3);
+            OrderResponse actual = orderService.makeOrder(userId, certificateId);
 
             assertThat(actual).isNotNull();
             assertThat(actual.getPurchaseDate()).isNotNull();
@@ -49,7 +50,6 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
             OrderResponse actual = orderService.getUserOrders(1, PageRequest.of(0, 10))
                     .getContent()
                     .get(0);
-            System.out.println(orderRepository.findAll());
 
             assertThat(actual).isNotNull();
             assertThat(actual.getTotalCost()).isEqualTo(expectedCost);
@@ -60,7 +60,6 @@ public class OrderServiceIntegrationTest extends AbstractIntegrationTest {
             int userId = Integer.MAX_VALUE;
 
             Page<OrderResponse> actual = orderService.getUserOrders(userId, PageRequest.of(0, 1));
-
 
             assertThat(actual).isNotNull();
             assertThat(actual.getContent()).isNotNull();

@@ -79,7 +79,7 @@ public class GiftCertificateControllerTest {
     class GetByIdEndpointTest {
 
         @Test
-        void checkGetByIdShouldReturnBadRequestStatus() throws Exception {
+        void checkGetByIdShouldReturnNotFoundStatus() throws Exception {
             int id = 10;
 
             doThrow(EntityNotFoundException.class)

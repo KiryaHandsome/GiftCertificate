@@ -50,7 +50,6 @@ class OrderServiceTest {
     private OrderMapper orderMapper;
     private OrderTestBuilder ORDER_BUILDER;
 
-
     @BeforeEach
     void setUp() {
         certificateMapper = (GiftCertificateMapper) new GiftCertificateMapperImpl();
@@ -119,8 +118,6 @@ class OrderServiceTest {
             assertThrows(EntityNotFoundException.class,
                     () -> orderService.makeOrder(userId, certificateId));
         }
-
-
     }
 
     @Nested

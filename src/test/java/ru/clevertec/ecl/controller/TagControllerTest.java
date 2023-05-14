@@ -27,7 +27,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -173,14 +172,12 @@ public class TagControllerTest {
 
             doReturn(response)
                     .when(tagService).save(request);
-            String content = objectMapper.writeValueAsString(request);
-            System.out.println(content);
             mockMvc.perform(post(URI.create(TAG_PATH))
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(content)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isCreated())
                     .andExpect(header().string("location", TAG_PATH + "/" + id));
+
             verify(tagService).save(request);
         }
     }

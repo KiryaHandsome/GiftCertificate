@@ -59,6 +59,7 @@ class TagServiceTest {
 
             doNothing()
                     .when(mockRepository).deleteById(id);
+
             tagService.delete(id);
 
             verify(mockRepository).deleteById(idCaptor.capture());
