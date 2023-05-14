@@ -1,18 +1,14 @@
 package ru.clevertec.ecl.service;
 
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.dto.tag.TagRequest;
 import ru.clevertec.ecl.dto.tag.TagResponse;
 import ru.clevertec.ecl.exception.EntityNotFoundException;
-import ru.clevertec.ecl.mapper.TagRequestMapper;
-import ru.clevertec.ecl.mapper.TagResponseMapper;
+import ru.clevertec.ecl.mapper.TagMapper;
 import ru.clevertec.ecl.model.Tag;
 import ru.clevertec.ecl.repository.TagRepository;
 import ru.clevertec.ecl.service.api.CrudService;
@@ -25,8 +21,7 @@ import java.util.List;
 public class TagService implements CrudService<TagRequest, TagResponse, Integer> {
 
     private final TagRepository tagRepository;
-    private final TagResponseMapper responseMapper = Mappers.getMapper(TagResponseMapper.class);
-    private final TagRequestMapper requestMapper = Mappers.getMapper(TagRequestMapper.class);
+    private final TagMapper tagMapper;
 
     /**
      * Finds all tags.
@@ -36,7 +31,7 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
     @Override
     public Page<TagResponse> findAll(Pageable pageable) {
         return tagRepository.findAll(pageable)
-                .map(responseMapper::toDTO);
+                .map(tagMapper::toResponse);
     }
 
     /**
@@ -64,9 +59,9 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
                 .ifPresent(t -> {
                     throw new IllegalArgumentException("Tag with such name already exists");
                 });
-        Tag tag = requestMapper.toEntity(tagRequest);
+        Tag tag = tagMapper.toEntity(tagRequest);
         Tag savedTag = tagRepository.save(tag);
-        return responseMapper.toDTO(savedTag);
+        return tagMapper.toResponse(savedTag);
     }
 
     /**
@@ -79,10 +74,11 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
     @Override
     @Transactional
     public TagResponse update(Integer id, TagRequest tagRequest) {
-        Tag tag = requestMapper.toEntity(tagRequest);
-        tag.setId(id);
+        Tag tag = tagRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tag not found", id));
+        tag.setName(tagRequest.getName());
         Tag updatedTag = tagRepository.save(tag);
-        return responseMapper.toDTO(updatedTag);
+        return tagMapper.toResponse(updatedTag);
     }
 
     /**
@@ -96,7 +92,7 @@ public class TagService implements CrudService<TagRequest, TagResponse, Integer>
     public TagResponse find(Integer id) {
         Tag tag = tagRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tag not found", id));
-        return responseMapper.toDTO(tag);
+        return tagMapper.toResponse(tag);
     }
 
     public List<Tag> findAllByNameIn(List<String> names) {

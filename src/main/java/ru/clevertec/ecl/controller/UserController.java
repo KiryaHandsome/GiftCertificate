@@ -12,9 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.clevertec.ecl.dto.OrderRequest;
-import ru.clevertec.ecl.dto.order.OrderDTO;
-import ru.clevertec.ecl.model.Order;
+import ru.clevertec.ecl.dto.order.OrderRequest;
+import ru.clevertec.ecl.dto.order.OrderResponse;
 import ru.clevertec.ecl.model.User;
 import ru.clevertec.ecl.service.OrderService;
 import ru.clevertec.ecl.service.UserService;
@@ -61,10 +60,10 @@ public class UserController {
      * @return order dto
      */
     @PostMapping("/{user_id}/orders")
-    public ResponseEntity<OrderDTO> makeOrder(
+    public ResponseEntity<OrderResponse> makeOrder(
             @PathVariable("user_id") Integer userId,
             @RequestBody OrderRequest orderRequest) {
-        OrderDTO order = orderService.makeOrder(userId, orderRequest.getCertificateId());
+        OrderResponse order = orderService.makeOrder(userId, orderRequest.getCertificateId());
         return ResponseEntity.ok(order);
     }
 
@@ -76,10 +75,10 @@ public class UserController {
      * @return page of order dto
      */
     @GetMapping("/{user_id}/orders")
-    public ResponseEntity<Page<OrderDTO>> getUserOrders(
+    public ResponseEntity<Page<OrderResponse>> getUserOrders(
             @PathVariable("user_id") Integer userId,
             Pageable pageable) {
-        Page<OrderDTO> orders = orderService.getUserOrders(userId, pageable);
+        Page<OrderResponse> orders = orderService.getUserOrders(userId, pageable);
         return ResponseEntity.ok(orders);
     }
 }

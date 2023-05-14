@@ -24,3 +24,4 @@ public interface CrudService<REQ, RESP, ID> {
 
     RESP find(ID id);
 }
+

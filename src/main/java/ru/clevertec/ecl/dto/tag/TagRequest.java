@@ -1,17 +1,20 @@
 package ru.clevertec.ecl.dto.tag;
 
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+
 @Getter
 @Setter
-public class TagRequest extends AbstractTagDTO {
+@ToString
+@AllArgsConstructor
+@EqualsAndHashCode
+public class TagRequest {
 
-    public TagRequest(String name) {
-        super(name);
-    }
+    @NotBlank
+    private String name;
 }

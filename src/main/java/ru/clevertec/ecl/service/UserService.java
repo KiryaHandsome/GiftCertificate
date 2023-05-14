@@ -22,7 +22,8 @@ public class UserService implements IUserService {
      * Finds user by id.
      *
      * @param id id of desired user
-     * @return
+     * @return found user
+     * @throws EntityNotFoundException if user not found
      */
     @Override
     public User find(Integer id) {

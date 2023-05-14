@@ -8,8 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.clevertec.ecl.model.GiftCertificate;
 
-import java.util.List;
-
 @Repository
 public interface GiftCertificateRepository extends JpaRepository<GiftCertificate, Integer> {
 

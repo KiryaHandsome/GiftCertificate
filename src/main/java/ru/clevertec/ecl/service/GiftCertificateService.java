@@ -1,7 +1,6 @@
 package ru.clevertec.ecl.service;
 
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -10,9 +9,8 @@ import ru.clevertec.ecl.dto.certificate.GiftCertificateRequest;
 import ru.clevertec.ecl.dto.certificate.GiftCertificateResponse;
 import ru.clevertec.ecl.dto.tag.TagRequest;
 import ru.clevertec.ecl.exception.EntityNotFoundException;
-import ru.clevertec.ecl.mapper.GiftCertificateRequestMapper;
-import ru.clevertec.ecl.mapper.GiftCertificateResponseMapper;
-import ru.clevertec.ecl.mapper.TagResponseMapper;
+import ru.clevertec.ecl.mapper.GiftCertificateMapper;
+import ru.clevertec.ecl.mapper.TagMapper;
 import ru.clevertec.ecl.model.GiftCertificate;
 import ru.clevertec.ecl.model.Tag;
 import ru.clevertec.ecl.repository.GiftCertificateRepository;
@@ -26,9 +24,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GiftCertificateService implements IGiftCertificateService {
 
-    private GiftCertificateResponseMapper responseMapper = Mappers.getMapper(GiftCertificateResponseMapper.class);
-    private GiftCertificateRequestMapper requestMapper = Mappers.getMapper(GiftCertificateRequestMapper.class);
-    private TagResponseMapper tagResponseMapper = Mappers.getMapper(TagResponseMapper.class);
+    //    private final GiftCertificateResponseMapper certificateMapper;
+//    private final GiftCertificateRequestMapper certificateMapper;
+    private final GiftCertificateMapper certificateMapper;
+    private final TagMapper tagMapper;
     private final GiftCertificateRepository certificateRepository;
     private final TagService tagService;
 
@@ -52,7 +51,7 @@ public class GiftCertificateService implements IGiftCertificateService {
     @Override
     @Transactional
     public GiftCertificateResponse save(GiftCertificateRequest certificateRequestDTO) {
-        GiftCertificate giftCertificate = requestMapper.toEntity(certificateRequestDTO);
+        GiftCertificate giftCertificate = certificateMapper.toEntity(certificateRequestDTO);
         List<String> names = certificateRequestDTO.getTags()
                 .stream()
                 .map(Tag::getName)
@@ -60,19 +59,19 @@ public class GiftCertificateService implements IGiftCertificateService {
         List<Tag> existingTags = tagService.findAllByNameIn(names);
         List<Tag> tags = new ArrayList<>();
         for (Tag tag : certificateRequestDTO.getTags()) {
-            ;
             tags.add(existingTags
                     .stream()
                     .filter(t -> t.getName().equals(tag.getName()))
                     .findFirst()
-                    .orElseGet(() -> tagResponseMapper.toEntity(
-                            tagService.save(new TagRequest(tag.getName())))
+                    .orElseGet(() -> tagMapper.toEntity(
+                                    tagService.save(new TagRequest(tag.getName()))
+                            )
                     )
             );
         }
         giftCertificate.setTags(tags);
         GiftCertificate certificate = certificateRepository.save(giftCertificate);
-        return responseMapper.toDTO(certificate);
+        return certificateMapper.toResponse(certificate);
     }
 
     /**
@@ -91,7 +90,7 @@ public class GiftCertificateService implements IGiftCertificateService {
                 .orElseThrow(() -> new EntityNotFoundException("Certificate with such id not found", id));
         setIfNotNull(request, certificate);
         GiftCertificate updatedCertificate = certificateRepository.save(certificate);
-        return responseMapper.toDTO(updatedCertificate);
+        return certificateMapper.toResponse(updatedCertificate);
     }
 
     /**
@@ -102,7 +101,7 @@ public class GiftCertificateService implements IGiftCertificateService {
     @Override
     public Page<GiftCertificateResponse> findAll(Pageable pageable) {
         return certificateRepository.findAll(pageable)
-                .map(responseMapper::toDTO);
+                .map(certificateMapper::toResponse);
     }
 
     /**
@@ -116,7 +115,7 @@ public class GiftCertificateService implements IGiftCertificateService {
     public GiftCertificateResponse find(Integer id) {
         GiftCertificate certificate = certificateRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Gift certificate not found", id));
-        return responseMapper.toDTO(certificate);
+        return certificateMapper.toResponse(certificate);
     }
 
     @Override
@@ -126,7 +125,7 @@ public class GiftCertificateService implements IGiftCertificateService {
             Pageable pageable
     ) {
         return certificateRepository.findAll(tagName, description, pageable)
-                .map(responseMapper::toDTO);
+                .map(certificateMapper::toResponse);
     }
 
     //TODO: move to mapper

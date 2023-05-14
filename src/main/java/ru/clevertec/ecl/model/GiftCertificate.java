@@ -54,6 +54,7 @@ public class GiftCertificate {
     @JoinTable(name = "gift_certificate_tag", schema = "gift_shop",
             joinColumns = @JoinColumn(name = "gift_certificate_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @Builder.Default
     private List<Tag> tags = new ArrayList<>();
 
     public void addTag(Tag tag) {

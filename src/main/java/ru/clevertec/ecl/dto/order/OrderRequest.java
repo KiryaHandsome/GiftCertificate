@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.dto;
+package ru.clevertec.ecl.dto.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
