@@ -24,8 +24,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GiftCertificateService implements IGiftCertificateService {
 
-    //    private final GiftCertificateResponseMapper certificateMapper;
-//    private final GiftCertificateRequestMapper certificateMapper;
     private final GiftCertificateMapper certificateMapper;
     private final TagMapper tagMapper;
     private final GiftCertificateRepository certificateRepository;
@@ -128,7 +126,6 @@ public class GiftCertificateService implements IGiftCertificateService {
                 .map(certificateMapper::toResponse);
     }
 
-    //TODO: move to mapper
     private static void setIfNotNull(GiftCertificateRequest source, GiftCertificate destination) {
         if (source.getName() != null)
             destination.setName(source.getName());

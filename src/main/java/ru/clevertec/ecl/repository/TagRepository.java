@@ -9,7 +9,6 @@ import ru.clevertec.ecl.model.Tag;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface TagRepository extends JpaRepository<Tag, Integer> {
 
     Page<Tag> findAll(Pageable pageable);
