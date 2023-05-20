@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service.order;
+package ru.clevertec.ecl.integration;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.dto.order.OrderResponse;
 import ru.clevertec.ecl.repository.OrderRepository;
-import ru.clevertec.ecl.service.AbstractIntegrationTest;
 import ru.clevertec.ecl.service.OrderService;
 
 import static org.assertj.core.api.Assertions.assertThat;

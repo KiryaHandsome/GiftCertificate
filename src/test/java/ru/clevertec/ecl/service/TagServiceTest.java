@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service.tag;
+package ru.clevertec.ecl.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service.user;
+package ru.clevertec.ecl.integration;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -7,10 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.exception.EntityNotFoundException;
 import ru.clevertec.ecl.model.User;
-import ru.clevertec.ecl.service.AbstractIntegrationTest;
 import ru.clevertec.ecl.service.UserService;
 
 import java.util.List;

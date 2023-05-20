@@ -1,8 +1,5 @@
-package ru.clevertec.ecl.service.tag;
+package ru.clevertec.ecl.integration;
 
-import org.junit.After;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +13,6 @@ import ru.clevertec.ecl.dto.tag.TagResponse;
 import ru.clevertec.ecl.exception.EntityNotFoundException;
 import ru.clevertec.ecl.mapper.TagMapper;
 import ru.clevertec.ecl.model.Tag;
-import ru.clevertec.ecl.service.AbstractIntegrationTest;
 import ru.clevertec.ecl.service.TagService;
 
 import static org.assertj.core.api.Assertions.assertThat;

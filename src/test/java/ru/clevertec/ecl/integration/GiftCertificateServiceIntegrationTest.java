@@ -1,7 +1,5 @@
-package ru.clevertec.ecl.service.certificate;
+package ru.clevertec.ecl.integration;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,7 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.clevertec.ecl.dto.certificate.GiftCertificateRequest;
 import ru.clevertec.ecl.dto.certificate.GiftCertificateResponse;
 import ru.clevertec.ecl.dto.tag.TagRequest;
@@ -24,12 +21,10 @@ import ru.clevertec.ecl.mapper.GiftCertificateMapper;
 import ru.clevertec.ecl.mapper.TagMapper;
 import ru.clevertec.ecl.model.GiftCertificate;
 import ru.clevertec.ecl.model.Tag;
-import ru.clevertec.ecl.service.AbstractIntegrationTest;
 import ru.clevertec.ecl.service.GiftCertificateService;
 import ru.clevertec.ecl.service.TagService;
 import ru.clevertec.ecl.util.GiftCertificateTestBuilder;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service;
+package ru.clevertec.ecl.integration;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
