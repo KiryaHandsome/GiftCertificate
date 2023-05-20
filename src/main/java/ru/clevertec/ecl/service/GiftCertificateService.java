@@ -1,26 +1,33 @@
 package ru.clevertec.ecl.service;
 
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.factory.Mappers;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.clevertec.ecl.dto.GiftCertificateRequest;
-import ru.clevertec.ecl.dto.GiftCertificateResponse;
+import org.springframework.transaction.annotation.Transactional;
+import ru.clevertec.ecl.dto.certificate.GiftCertificateRequest;
+import ru.clevertec.ecl.dto.certificate.GiftCertificateResponse;
+import ru.clevertec.ecl.dto.tag.TagRequest;
 import ru.clevertec.ecl.exception.EntityNotFoundException;
-import ru.clevertec.ecl.mapper.GiftCertificateRequestMapper;
-import ru.clevertec.ecl.mapper.GiftCertificateResponseMapper;
+import ru.clevertec.ecl.mapper.GiftCertificateMapper;
+import ru.clevertec.ecl.mapper.TagMapper;
 import ru.clevertec.ecl.model.GiftCertificate;
+import ru.clevertec.ecl.model.Tag;
 import ru.clevertec.ecl.repository.GiftCertificateRepository;
 import ru.clevertec.ecl.service.api.IGiftCertificateService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class GiftCertificateService implements IGiftCertificateService {
 
+    private final GiftCertificateMapper certificateMapper;
+    private final TagMapper tagMapper;
     private final GiftCertificateRepository certificateRepository;
-    private final GiftCertificateResponseMapper responseMapper = Mappers.getMapper(GiftCertificateResponseMapper.class);
-    private final GiftCertificateRequestMapper requestMapper = Mappers.getMapper(GiftCertificateRequestMapper.class);
+    private final TagService tagService;
 
     /**
      * Deletes certificate by id
@@ -28,8 +35,9 @@ public class GiftCertificateService implements IGiftCertificateService {
      * @param id id of certificate to delete
      */
     @Override
+    @Transactional
     public void delete(Integer id) {
-        certificateRepository.delete(id);
+        certificateRepository.deleteById(id);
     }
 
     /**
@@ -39,26 +47,48 @@ public class GiftCertificateService implements IGiftCertificateService {
      * @return certificate with created id
      */
     @Override
+    @Transactional
     public GiftCertificateResponse save(GiftCertificateRequest certificateRequestDTO) {
-        GiftCertificate giftCertificate = requestMapper.toEntity(certificateRequestDTO);
+        GiftCertificate giftCertificate = certificateMapper.toEntity(certificateRequestDTO);
+        List<String> names = certificateRequestDTO.getTags()
+                .stream()
+                .map(Tag::getName)
+                .toList();
+        List<Tag> existingTags = tagService.findAllByNameIn(names);
+        List<Tag> tags = new ArrayList<>();
+        for (Tag tag : certificateRequestDTO.getTags()) {
+            tags.add(existingTags
+                    .stream()
+                    .filter(t -> t.getName().equals(tag.getName()))
+                    .findFirst()
+                    .orElseGet(() -> tagMapper.toEntity(
+                                    tagService.save(new TagRequest(tag.getName()))
+                            )
+                    )
+            );
+        }
+        giftCertificate.setTags(tags);
         GiftCertificate certificate = certificateRepository.save(giftCertificate);
-        return responseMapper.toDTO(certificate);
+        return certificateMapper.toResponse(certificate);
     }
 
     /**
      * Partial update of certificate.
      * Wraps call of(see for more information)
-     * {@link ru.clevertec.ecl.repository.GiftCertificateRepository#update(Integer, GiftCertificate)}
      *
-     * @param id             id of updatable certificate
-     * @param certificateDTO entity with updatable fields
+     * @param id      id of updatable certificate
+     * @param request entity with updatable fields
      * @return updated certificate
+     * @throws EntityNotFoundException if certificate with such id doesn't exist
      */
     @Override
-    public GiftCertificateResponse update(Integer id, GiftCertificateRequest certificateDTO) {
-        GiftCertificate certificate = requestMapper.toEntity(certificateDTO);
-        GiftCertificate updatedCertificate = certificateRepository.update(id, certificate);
-        return responseMapper.toDTO(updatedCertificate);
+    @Transactional
+    public GiftCertificateResponse update(Integer id, GiftCertificateRequest request) {
+        GiftCertificate certificate = certificateRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Certificate with such id not found", id));
+        setIfNotNull(request, certificate);
+        GiftCertificate updatedCertificate = certificateRepository.save(certificate);
+        return certificateMapper.toResponse(updatedCertificate);
     }
 
     /**
@@ -67,16 +97,13 @@ public class GiftCertificateService implements IGiftCertificateService {
      * @return list of certificates responsesDTO
      */
     @Override
-    public List<GiftCertificateResponse> findAll() {
-        return certificateRepository.findAll()
-                .stream()
-                .map(responseMapper::toDTO)
-                .toList();
+    public Page<GiftCertificateResponse> findAll(Pageable pageable) {
+        return certificateRepository.findAll(pageable)
+                .map(certificateMapper::toResponse);
     }
 
     /**
      * Finds certificate by id.
-     * See {@link ru.clevertec.ecl.repository.GiftCertificateRepository#find(Integer)}
      *
      * @param id id of desired certificate
      * @return optional response DTO of found certificate
@@ -84,29 +111,31 @@ public class GiftCertificateService implements IGiftCertificateService {
      */
     @Override
     public GiftCertificateResponse find(Integer id) {
-        GiftCertificate certificate = certificateRepository.find(id)
+        GiftCertificate certificate = certificateRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Gift certificate not found", id));
-        return responseMapper.toDTO(certificate);
+        return certificateMapper.toResponse(certificate);
     }
 
-    /**
-     * Finds all tags and converts them to list of
-     * {@link GiftCertificateResponse}. <br/>
-     * Wraps call of(see for more information)
-     * {@link ru.clevertec.ecl.repository.GiftCertificateRepository#findAll(String, String, String, String)}
-     */
     @Override
-    public List<GiftCertificateResponse> findAll(String tagName,
-                                                 String sortByDate,
-                                                 String sortByName,
-                                                 String description) {
-        return certificateRepository.findAll(
-                        tagName,
-                        sortByDate,
-                        sortByName,
-                        description)
-                .stream()
-                .map(responseMapper::toDTO)
-                .toList();
+    public Page<GiftCertificateResponse> findAll(
+            String tagName,
+            String description,
+            Pageable pageable
+    ) {
+        return certificateRepository.findAll(tagName, description, pageable)
+                .map(certificateMapper::toResponse);
+    }
+
+    private static void setIfNotNull(GiftCertificateRequest source, GiftCertificate destination) {
+        if (source.getName() != null)
+            destination.setName(source.getName());
+        if (source.getDuration() != null)
+            destination.setDuration(source.getDuration());
+        if (source.getPrice() != null)
+            destination.setPrice(source.getPrice());
+        if (source.getDescription() != null)
+            destination.setDescription(source.getDescription());
+        if (source.getTags() != null)
+            destination.setTags(source.getTags());
     }
 }

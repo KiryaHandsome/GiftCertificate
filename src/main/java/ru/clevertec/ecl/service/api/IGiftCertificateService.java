@@ -1,15 +1,14 @@
 package ru.clevertec.ecl.service.api;
 
-import ru.clevertec.ecl.dto.GiftCertificateRequest;
-import ru.clevertec.ecl.dto.GiftCertificateResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.clevertec.ecl.dto.certificate.GiftCertificateRequest;
+import ru.clevertec.ecl.dto.certificate.GiftCertificateResponse;
 
 public interface IGiftCertificateService
         extends CrudService<GiftCertificateRequest, GiftCertificateResponse, Integer> {
 
-    List<GiftCertificateResponse> findAll(String tagName,
-                                          String sortByDate,
-                                          String sortByName,
-                                          String description);
+    Page<GiftCertificateResponse> findAll(String tagName,
+                                          String description,
+                                          Pageable pageable);
 }

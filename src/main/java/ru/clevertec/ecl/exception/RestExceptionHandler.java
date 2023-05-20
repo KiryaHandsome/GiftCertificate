@@ -28,15 +28,4 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
                 .status(statusCode)
                 .body(new ErrorEntity(errorCode, errorMessage));
     }
-
-    @ExceptionHandler(InvalidOrderException.class)
-    protected ResponseEntity<ErrorEntity> handleInvalidOrderException(InvalidOrderException ex) {
-        String errorMessage = ex.getMessage() + ": " + ex.getOrderParam();
-        Integer statusCode = 400;
-        String errorCode = String.valueOf(statusCode);
-        return ResponseEntity
-                .status(statusCode)
-                .body(new ErrorEntity(errorCode, errorMessage));
-    }
-
 }

@@ -1,119 +1,138 @@
 package ru.clevertec.ecl.service;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.clevertec.ecl.dto.TagRequest;
-import ru.clevertec.ecl.dto.TagResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import ru.clevertec.ecl.dto.tag.TagRequest;
+import ru.clevertec.ecl.dto.tag.TagResponse;
 import ru.clevertec.ecl.exception.EntityNotFoundException;
-import ru.clevertec.ecl.mapper.TagRequestMapper;
-import ru.clevertec.ecl.mapper.TagResponseMapper;
+import ru.clevertec.ecl.mapper.TagMapper;
+import ru.clevertec.ecl.mapper.TagMapperImpl;
 import ru.clevertec.ecl.model.Tag;
 import ru.clevertec.ecl.repository.TagRepository;
+import ru.clevertec.ecl.service.TagService;
+import ru.clevertec.ecl.util.TagTestBuilder;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class TagServiceTest {
 
-    @InjectMocks
-    private TagService tagService;
     @Mock
     private TagRepository mockRepository;
-
-    private Tag tag;
-    private TagRequestMapper requestMapper;
-    private TagResponseMapper responseMapper;
+    private TagMapper tagMapper;
+    private TagService tagService;
+    private TagTestBuilder TAG_BUILDER;
 
     @BeforeEach
     void setUp() {
-        String name = "some name";
-        int id = 1;
-        tag = new Tag(id, name);
-        responseMapper = Mappers.getMapper(TagResponseMapper.class);
-        requestMapper = Mappers.getMapper(TagRequestMapper.class);
+        tagMapper = (TagMapper) new TagMapperImpl();
+        tagService = new TagService(mockRepository, tagMapper);
+        TAG_BUILDER = new TagTestBuilder();
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = {1, 2, 100, Integer.MAX_VALUE})
-    void checkDeleteShouldCallRepositoryWithSameId(int id) {
-        ArgumentCaptor<Integer> idCaptor = ArgumentCaptor.forClass(Integer.class);
+    @Nested
+    class DeleteTest {
 
-        doNothing().when(mockRepository).delete(id);
-        tagService.delete(id);
+        @ParameterizedTest
+        @ValueSource(ints = {1, 2, 100, Integer.MAX_VALUE})
+        void checkDeleteShouldCallRepositoryWithSameId(int id) {
+            ArgumentCaptor<Integer> idCaptor = ArgumentCaptor.forClass(Integer.class);
 
-        verify(mockRepository).delete(idCaptor.capture());
-        Integer actualId = idCaptor.getValue();
-        assertThat(actualId).isEqualTo(id);
+            doNothing()
+                    .when(mockRepository).deleteById(id);
+
+            tagService.delete(id);
+
+            verify(mockRepository).deleteById(idCaptor.capture());
+            Integer actualId = idCaptor.getValue();
+            assertThat(actualId).isEqualTo(id);
+        }
     }
 
-    @Test
-    void checkSaveShouldReturnSameTagResponseAsRepository() {
-        String name = "someName";
-        Tag tagWithoutId = new Tag(null, name);
-        Tag tagWithId = new Tag(1, name);
-        TagRequest request = requestMapper.toDTO(tagWithoutId);
-        TagResponse response = responseMapper.toDTO(tagWithId);
+    @Nested
+    class SaveTest {
 
-        when(mockRepository.save(tagWithoutId))
-                .thenReturn(tagWithId);
-        TagResponse actualResponse = tagService.save(request);
+        @Test
+        void checkSaveShouldReturnSameTagResponseAsRepository() {
+            String name = "someName";
+            Tag tagWithoutId = new Tag(null, name);
+            Tag tagWithId = new Tag(1, name);
+            TagRequest request = tagMapper.toRequest(tagWithoutId);
+            TagResponse expected = tagMapper.toResponse(tagWithId);
 
-        verify(mockRepository).save(any());
-        assertThat(actualResponse).isEqualTo(response);
+            doReturn(tagWithId)
+                    .when(mockRepository).save(tagWithoutId);
+            TagResponse actual = tagService.save(request);
+
+            verify(mockRepository).save(any());
+            assertThat(actual).isEqualTo(expected);
+        }
     }
+
 
     @Test
     void checkUpdateShouldReturnExpectedResponse() {
         Integer id = 1;
-        tag.setId(null);
-        TagResponse expectedResponse = responseMapper.toDTO(tag);
+        Tag tag = TAG_BUILDER.withId(id).build();
+        TagResponse expectedResponse = tagMapper.toResponse(tag);
 
-        when(mockRepository.update(id, tag))
-                .thenReturn(tag);
-        TagResponse actualResponse = tagService.update(id, requestMapper.toDTO(tag));
+        doReturn(Optional.of(tag))
+                .when(mockRepository).findById(id);
+        doReturn(tag)
+                .when(mockRepository).save(tag);
 
-        verify(mockRepository).update(id, tag);
+        TagResponse actualResponse = tagService.update(id, tagMapper.toRequest(tag));
+
+        verify(mockRepository).save(tag);
         assertThat(actualResponse).isEqualTo(expectedResponse);
     }
 
     @Test
     void checkFindAllShouldReturnSameListAsRepository() {
-        List<Tag> tags = List.of(tag);
-        List<TagResponse> expectedResponse = List.of(responseMapper.toDTO(tag));
+        Tag tag = TAG_BUILDER.build();
+        Page<Tag> tags = new PageImpl<>(List.of(tag));
+        Page<TagResponse> expected = tags.map(tagMapper::toResponse);
+        Pageable pageable = PageRequest.of(1, 1);
 
-        when(mockRepository.findAll())
-                .thenReturn(tags);
-        List<TagResponse> actualResponse = tagService.findAll();
+        doReturn(tags)
+                .when(mockRepository).findAll(pageable);
 
-        verify(mockRepository).findAll();
-        assertThat(actualResponse).isEqualTo(expectedResponse);
+        Page<TagResponse> actual = tagService.findAll(pageable);
+
+        verify(mockRepository).findAll(pageable);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
     void checkFindShouldReturnSameResponse() {
-        int id = tag.getId();
-        TagResponse expectedResponse = responseMapper.toDTO(tag);
+        int id = 10;
+        Tag tag = TAG_BUILDER.withId(id).build();
+        TagResponse expectedResponse = tagMapper.toResponse(tag);
 
-        when(mockRepository.find(id))
-                .thenReturn(Optional.of(tag));
+        doReturn(Optional.of(tag))
+                .when(mockRepository).findById(id);
         TagResponse actualResponse = tagService.find(id);
 
-        verify(mockRepository).find(id);
+        verify(mockRepository).findById(id);
         assertThat(actualResponse).isEqualTo(expectedResponse);
     }
 
@@ -121,8 +140,8 @@ class TagServiceTest {
     void checkFindShouldThrowEntityNotFoundException() {
         Integer id = 1;
 
-        when(mockRepository.find(id))
-                .thenThrow(EntityNotFoundException.class);
+        doReturn(Optional.empty())
+                .when(mockRepository).findById(id);
 
         assertThrows(EntityNotFoundException.class,
                 () -> tagService.find(id));
